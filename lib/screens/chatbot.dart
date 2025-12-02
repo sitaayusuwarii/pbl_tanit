@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../chat_service.dart';
 
 class ChatbotPage extends StatefulWidget {
   const ChatbotPage({super.key});
@@ -13,6 +14,7 @@ class _ChatbotPageState extends State<ChatbotPage>
   late TabController _tabController;
   final List<Map<String, dynamic>> _messages = [];
   final List<Map<String, dynamic>> _history = [];
+  final ChatService _chat = ChatService();
   final TextEditingController _ctrl = TextEditingController();
   final ScrollController _scroll = ScrollController();
   bool _sending = false;
@@ -74,17 +76,29 @@ class _ChatbotPageState extends State<ChatbotPage>
     _scrollToEnd();
 
     // Simulasi respons bot (dummy)
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+  final botReply = await _chat.sendMessage(text);
 
-    setState(() {
-      _messages.add({
-        'role': 'bot',
-        'text': 'Ini respons otomatis: "$text"',
-        'time': DateTime.now()
-      });
-      _sending = false;
+  setState(() {
+    _messages.add({
+      'role': 'bot',
+      'text': botReply,
+      'time': DateTime.now()
     });
-    _scrollToEnd();
+  });
+} catch (e) {
+  setState(() {
+    _messages.add({
+      'role': 'bot',
+      'text': 'Terjadi kesalahan: $e',
+      'time': DateTime.now()
+    });
+  });
+}
+
+setState(() => _sending = false);
+_scrollToEnd();
+
   }
 
   Widget _buildChatBubble(Map<String, dynamic> msg) {

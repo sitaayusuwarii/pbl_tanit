@@ -15,6 +15,7 @@ class UploadPostScreen extends StatefulWidget {
 class _UploadPostScreenState extends State<UploadPostScreen> {
   final TextEditingController _descController = TextEditingController();
   String? _selectedCategory;
+  
   bool _loading = false;
 
   final List<Map<String, dynamic>> _categories = [
@@ -61,7 +62,7 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
 
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://10.20.2.176:8000/api/posts'),
+      Uri.parse('http://192.168.1.6:8000/api/posts'),
     );
 
     request.headers['Authorization'] = 'Bearer $token';
@@ -242,64 +243,64 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Header
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF66BB6A), Color(0xFF2E7D32)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF2E7D32).withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(2),
-                    child: const CircleAvatar(
-                      backgroundColor: Colors.white,
-                      radius: 20,
-                      child: Icon(
-                        Icons.person,
-                        color: Color(0xFF2E7D32),
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Anda',
-                        style: TextStyle(
-                          fontFamily: 'PublicSans',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: Color(0xFF1A1A1A),
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Petani',
-                        style: TextStyle(
-                          fontFamily: 'PublicSans',
-                          fontSize: 13,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.all(16),
+            //   child: Row(
+            //     children: [
+            //       Container(
+            //         decoration: BoxDecoration(
+            //           shape: BoxShape.circle,
+            //           gradient: const LinearGradient(
+            //             colors: [Color(0xFF66BB6A), Color(0xFF2E7D32)],
+            //             begin: Alignment.topLeft,
+            //             end: Alignment.bottomRight,
+            //           ),
+            //           boxShadow: [
+            //             BoxShadow(
+            //               color: const Color(0xFF2E7D32).withOpacity(0.3),
+            //               blurRadius: 8,
+            //               offset: const Offset(0, 2),
+            //             ),
+            //           ],
+            //         ),
+            //         padding: const EdgeInsets.all(2),
+            //         child: const CircleAvatar(
+            //           backgroundColor: Colors.white,
+            //           radius: 20,
+            //           child: Icon(
+            //             Icons.person,
+            //             color: Color(0xFF2E7D32),
+            //             size: 24,
+            //           ),
+            //         ),
+            //       ),
+            //       const SizedBox(width: 12),
+            //       const Column(
+            //         crossAxisAlignment: CrossAxisAlignment.start,
+            //         children: [
+            //           Text(
+            //             'Anda',
+            //             style: TextStyle(
+            //               fontFamily: 'PublicSans',
+            //               fontWeight: FontWeight.w700,
+            //               fontSize: 16,
+            //               color: Color(0xFF1A1A1A),
+            //             ),
+            //           ),
+            //           SizedBox(height: 2),
+            //           Text(
+            //             'Petani',
+            //             style: TextStyle(
+            //               fontFamily: 'PublicSans',
+            //               fontSize: 13,
+            //               color: Colors.grey,
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ],
+            //   ),
+            // ),
 
             // Description TextField
             Padding(
@@ -443,78 +444,56 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: _categories.map((category) {
-                      final isSelected = _selectedCategory == category['name'];
-                      return GestureDetector(
-                        onTap: () => setState(() {
-                          _selectedCategory = isSelected 
-                              ? null 
-                              : category['name'] as String;
-                        }),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFF2E7D32)
-                                : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: isSelected
-                                  ? const Color(0xFF2E7D32)
-                                  : Colors.grey[300]!,
-                              width: isSelected ? 2 : 1,
-                            ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: const Color(0xFF2E7D32)
-                                          .withOpacity(0.3),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                category['icon'] as String,
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                category['name'] as String,
-                                style: TextStyle(
-                                  fontFamily: 'PublicSans',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : const Color(0xFF1A1A1A),
-                                ),
-                              ),
-                              if (isSelected) ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.check_circle,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                  // Dropdown Category
+Container(
+  padding: const EdgeInsets.symmetric(horizontal: 16),
+  decoration: BoxDecoration(
+    color: Colors.grey[100],
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(color: Colors.grey[300]!),
+  ),
+  child: DropdownButtonHideUnderline(
+    child: DropdownButton<String>(
+      value: _selectedCategory,
+      hint: const Text(
+        "Pilih kategori",
+        style: TextStyle(
+          fontFamily: 'PublicSans',
+          color: Color(0xFF1A1A1A),
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF2E7D32)),
+      items: _categories.map((category) {
+        return DropdownMenuItem<String>(
+          value: category['name'] as String,
+          child: Row(
+            children: [
+              Text(
+                category['icon'] as String,
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                category['name'] as String,
+                style: const TextStyle(
+                  fontFamily: 'PublicSans',
+                  fontSize: 14,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedCategory = value;
+        });
+      },
+    ),
+  ),
+),
                 ],
               ),
             ),

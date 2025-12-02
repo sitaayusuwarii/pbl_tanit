@@ -124,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final token = prefs.getString('token') ?? '';
 
       final response = await http.get(
-        Uri.parse('http://10.20.2.176:8000/api/posts'),
+        Uri.parse('http://172.16.3.137:8000/api/posts'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -495,7 +495,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final token = prefs.getString('token') ?? '';
 
     final response = await http.post(
-      Uri.parse('http://10.20.2.176:8000/api/posts/$postId/like'),
+      Uri.parse('http://172.16.3.137:8000/api/posts/$postId/like'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -519,7 +519,7 @@ void _showComments(int index, int postId) async {
   List initialComments = []; 
   try {
     final res = await http.get(
-      Uri.parse('http://10.20.2.176:8000/api/posts/$postId/comments'),
+      Uri.parse('http://172.16.3.137:8000/api/posts/$postId/comments'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (res.statusCode == 200) {
@@ -623,9 +623,9 @@ void _showComments(int index, int postId) async {
                                   CircleAvatar(
                                     radius: 18,
                                     // Pastikan path image benar dan server berjalan
-                                    backgroundImage: c['user']?['profile_picture'] != null
+                                    backgroundImage: c['user']?['avatar_url'] != null
                                         ? NetworkImage(
-                                            'http://192.168.1.11:8000/storage/${c['user']['profile_picture']}')
+                                            'http://192.168.1.6:8000/storage/${c['user']['avatar_url']}')
                                         : const AssetImage('assets/images/default_profile.png')
                                             as ImageProvider,
                                   ),
@@ -709,7 +709,7 @@ void _showComments(int index, int postId) async {
 
                         try {
                           final response = await http.post(
-                            Uri.parse('http://10.20.2.176:8000/api/posts/$postId/comments'),
+                            Uri.parse('http://172.16.3.137:8000/api/posts/$postId/comments'),
                             headers: {
                               'Authorization': 'Bearer $token',
                               'Content-Type': 'application/json',
@@ -970,7 +970,7 @@ void _showComments(int index, int postId) async {
                     final token = prefs.getString('token') ?? '';
 
                     final response = await http.post(
-                      Uri.parse('http://10.20.2.176:8000/api/posts'),
+                      Uri.parse('http://172.16.3.137:8000/api/posts'),
                       headers: {
                         'Authorization': 'Bearer $token',
                         'Content-Type': 'application/json',
@@ -1008,7 +1008,7 @@ void _showComments(int index, int postId) async {
     final token = prefs.getString('token') ?? '';
 
     final response = await http.delete(
-      Uri.parse('http://10.20.2.176:8000/api/posts/$postId'),
+      Uri.parse('http://172.16.3.137:8000/api/posts/$postId'),
       headers: {'Authorization': 'Bearer $token'},
     );
 

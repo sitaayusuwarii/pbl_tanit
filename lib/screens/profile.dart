@@ -50,7 +50,7 @@ String getAvatarUrl() {
   }
 
   // Jika tidak lengkap, tambahkan domain backend
-  return 'http://10.20.2.176:8000/storage/$avatar';
+  return 'http://172.16.3.137:8000/storage/$avatar';
 }
 
 
@@ -63,8 +63,8 @@ String getAvatarUrl() {
     final token = prefs.getString('token') ?? '';
 
     final url = widget.userId != null
-        ? 'http://10.20.2.176:8000/api/users/${widget.userId}'
-        : 'http://10.20.2.176:8000/api/user';
+        ? 'http://172.16.3.137:8000/api/users/${widget.userId}'
+        : 'http://172.16.3.137:8000/api/user';
 
     final response = await http.get(
       Uri.parse(url),
@@ -108,8 +108,8 @@ String getAvatarUrl() {
 
     // URL untuk postingan user sendiri atau user lain
     final url = widget.userId != null
-        ? 'http://10.20.2.176:8000/api/users/${widget.userId}/posts'
-        : 'http://10.20.2.176:8000/api/my-posts';
+        ? 'http://192.168.1.6:8000/api/users/${widget.userId}/posts'
+        : 'http://192.168.1.6:8000/api/my-posts';
 
     final response = await http.get(
       Uri.parse(url),
@@ -194,7 +194,7 @@ String getAvatarUrl() {
   Future<void> handleLike(int postId, int index) async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.20.2.176:8000/api/posts/$postId/like'),
+        Uri.parse('http://192.168.1.6:8000/api/posts/$postId/like'),
         headers: {
           'Authorization': 'Bearer YOUR_TOKEN_HERE',
           'Accept': 'application/json',
@@ -231,9 +231,14 @@ String getAvatarUrl() {
         children: [
           // Avatar
           CircleAvatar(
-            radius: 24,
-           
+          radius: 24,
+          backgroundImage: NetworkImage(
+            user["avatar_url"] ??
+            userProfile?["avatar_url"] ??
+            'https://ui-avatars.com/api/?name=${userProfile?['name']}&background=10b981&color=fff',
           ),
+        ),
+
           const SizedBox(width: 12),
 
           // Content
@@ -245,7 +250,7 @@ String getAvatarUrl() {
                 Row(
                   children: [
                     Text(
-                      user["name"] ?? "Unknown",
+                      (user["name"] ?? userProfile?['name'] ?? ""),
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
@@ -254,7 +259,7 @@ String getAvatarUrl() {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        '${user["username"] ?? "unknown"} · ${post["created_at"] ?? ""}',
+                        '${user["username"] ?? userProfile?['username'] ?? ""} · ${post["created_at"] ?? ""}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 15,
@@ -320,16 +325,16 @@ String getAvatarUrl() {
                     ),
 
                     // Retweet
-                    Row(
-                      children: [
-                        Icon(Icons.repeat, size: 18, color: Colors.grey[600]),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${post["shares_count"] ?? 0}',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                        ),
-                      ],
-                    ),
+                    // Row(
+                    //   children: [
+                    //     Icon(Icons.repeat, size: 18, color: Colors.grey[600]),
+                    //     const SizedBox(width: 6),
+                    //     Text(
+                    //       '${post["shares_count"] ?? 0}',
+                    //       style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                    //     ),
+                    //   ],
+                    // ),
 
                     // Like
                     InkWell(
@@ -410,70 +415,70 @@ String getAvatarUrl() {
           : CustomScrollView(
               slivers: [
                 // AppBar with menu
-               SliverAppBar(
-                  backgroundColor: Colors.white,
-                  elevation: 0,
-                  pinned: true,
-                  leading: null,
-                  title: const Text(
-                    'Profile',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  centerTitle: true,
-                   bottom: PreferredSize(
-                    preferredSize: Size.fromHeight(1),
-                    child: Container(
-                      color: Colors.grey.shade300, // Warna garis
-                      height: 2, // Ketebalan garis
-                    ),
-                  ),
+              //  SliverAppBar(
+              //     backgroundColor: Colors.white,
+              //     elevation: 0,
+              //     pinned: true,
+              //     leading: null,
+              //     title: const Text(
+              //       'Profile',
+              //       style: TextStyle(
+              //         color: Colors.black,
+              //         fontSize: 18,
+              //         fontWeight: FontWeight.bold,
+              //       ),
+              //     ),
+              //     centerTitle: true,
+              //      bottom: PreferredSize(
+              //       preferredSize: Size.fromHeight(1),
+              //       child: Container(
+              //         color: Colors.grey.shade300, // Warna garis
+              //         height: 2, // Ketebalan garis
+              //       ),
+              //     ),
 
    
-                  actions: [
-                    if (isOwnProfile)
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Colors.black),
-                        onSelected: (value) async {
-                          if (value == 'saved') {
-                            navigateToSavedPosts();
-                          } else if (value == 'logout') {
-                            await handleLogout();
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem<String>(
-                            value: 'saved',
-                            child: Row(
-                              children: [
-                                Icon(Icons.bookmark, size: 20),
-                                SizedBox(width: 12),
-                                Text('Postingan Tersimpan'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuDivider(),
-                          const PopupMenuItem<String>(
-                            value: 'logout',
-                            child: Row(
-                              children: [
-                                Icon(Icons.logout, size: 20, color: Colors.red),
-                                SizedBox(width: 12),
-                                Text(
-                                  'Keluar',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
+              //     actions: [
+              //       if (isOwnProfile)
+              //         PopupMenuButton<String>(
+              //           icon: const Icon(Icons.more_vert, color: Colors.black),
+              //           onSelected: (value) async {
+              //             if (value == 'saved') {
+              //               navigateToSavedPosts();
+              //             } else if (value == 'logout') {
+              //               await handleLogout();
+              //             }
+              //           },
+              //           itemBuilder: (context) => [
+              //             const PopupMenuItem<String>(
+              //               value: 'saved',
+              //               child: Row(
+              //                 children: [
+              //                   Icon(Icons.bookmark, size: 20),
+              //                   SizedBox(width: 12),
+              //                   Text('Postingan Tersimpan'),
+              //                 ],
+              //               ),
+              //             ),
+              //             const PopupMenuDivider(),
+              //             const PopupMenuItem<String>(
+              //               value: 'logout',
+              //               child: Row(
+              //                 children: [
+              //                   Icon(Icons.logout, size: 20, color: Colors.red),
+              //                   SizedBox(width: 12),
+              //                   Text(
+              //                     'Keluar',
+              //                     style: TextStyle(color: Colors.red),
+              //                   ),
+              //                 ],
+              //               ),
+              //             ),
+              //           ],
+              //         ),
+              //     ],
 
-                ),
+              //   ),
 
                 // Profile Header
                 SliverToBoxAdapter(
@@ -488,79 +493,118 @@ String getAvatarUrl() {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Avatar
-                                Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 4,
-                                    ),
-                                  ),
-                                  child: CircleAvatar(
-                                    radius: 36,
-                                    backgroundImage: NetworkImage(getAvatarUrl()),
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Avatar
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4,
                                   ),
                                 ),
-                                const Spacer(),
+                                child: CircleAvatar(
+                                  radius: 36,
+                                  backgroundImage: NetworkImage(getAvatarUrl()),
+                                ),
+                              ),
 
-                                // Edit Profile / Follow Button
-                               if (isOwnProfile)
-  OutlinedButton(
-    onPressed: () async {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => EditProfilePage(
-            userData: userProfile,
-          ),
-        ),
-      );
+                              const Spacer(),
 
-      // 🔥 Setelah kembali dari EditProfile, refresh ulang
-      fetchUserProfile();
-      fetchUserPosts();
-    },
-    style: OutlinedButton.styleFrom(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      side: BorderSide(color: Colors.grey[300]!),
-    ),
-    child: const Text(
-      'Edit Profil',
-      style: TextStyle(
-        color: Colors.black,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-  )
-
-
-                                else
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      // Handle follow/unfollow
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
+                              // Edit Profile / Follow Button
+                              if (isOwnProfile)
+                                OutlinedButton(
+                                  onPressed: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => EditProfilePage(
+                                          userData: userProfile,
+                                        ),
                                       ),
+                                    );
+
+                                    // Refresh
+                                    fetchUserProfile();
+                                    fetchUserPosts();
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
-                                    child: const Text(
-                                      'Ikuti',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    side: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                  child: const Text(
+                                    'Edit Profil',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
+                                )
+                              else
+                                ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Ikuti',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+
+                              const SizedBox(width: 8),
+
+                              // ✅ Titik Tiga Menu (Popup Menu)
+                              if (isOwnProfile)
+                                PopupMenuButton<String>(
+                                  icon: const Icon(Icons.more_vert, color: Colors.black),
+                                  onSelected: (value) async {
+                                    if (value == 'saved') {
+                                      navigateToSavedPosts();
+                                    } else if (value == 'logout') {
+                                      await handleLogout();
+                                    }
+                                  },
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem<String>(
+                                      value: 'saved',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.bookmark, size: 20),
+                                          SizedBox(width: 12),
+                                          Text('Postingan Tersimpan'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuDivider(),
+                                    const PopupMenuItem<String>(
+                                      value: 'logout',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.logout, size: 20, color: Colors.red),
+                                          SizedBox(width: 12),
+                                          Text(
+                                            'Keluar',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+
+
 
                             // Name
                             Text(

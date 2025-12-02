@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/admin_appbar.dart';
 import '../widgets/admin_sidebar.dart';
 import '../widgets/admin_card.dart';
+import 'category_add_page.dart';
 
 class CategoryListPage extends StatefulWidget {
   const CategoryListPage({Key? key}) : super(key: key);
@@ -79,36 +80,42 @@ class _CategoryListPageState extends State<CategoryListPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Daftar Kategori',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/admin/categories/add');
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah Kategori'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade600,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    const Text(
+      'Daftar Kategori',
+      style: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
+    ),
+
+    const SizedBox(height: 12),
+
+    ElevatedButton.icon(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CategoryAddPage(),
+          ),
+        );
+      },
+      icon: const Icon(Icons.add),
+      label: const Text('Tambah Kategori'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.green.shade600,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    ),
+  ],
+),
+
             const SizedBox(height: 24),
             
             AdminCard(

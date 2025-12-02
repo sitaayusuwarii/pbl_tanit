@@ -74,7 +74,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://10.20.2.176:8000/api/user/update'),
+        Uri.parse('http://192.168.1.6:8000/api/user/update'),
       );
 
       request.headers['Authorization'] = 'Bearer $token';

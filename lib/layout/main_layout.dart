@@ -145,12 +145,12 @@ class MainLayout extends StatelessWidget {
                   label: 'Chatbot',
                   index: 2,
                 ),
-                _buildNavItem(
-                  icon: Icons.groups_outlined,
-                  activeIcon: Icons.groups,
-                  label: 'Komunitas',
-                  index: 3,
-                ),
+                // _buildNavItem(
+                //   icon: Icons.groups_outlined,
+                //   activeIcon: Icons.groups,
+                //   label: 'Komunitas',
+                //   index: 3,
+                // ),
                 _buildNavItem(
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
