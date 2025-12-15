@@ -7,6 +7,7 @@ import 'edit_profile.dart';
 import 'post_detail.dart';
 import 'image_viewer.dart'; 
 import 'saved_post_page.dart';
+import '../config/api_config.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -44,7 +45,7 @@ class _ProfilePageState extends State<ProfilePage>
 
     // Ambil data user
     final userResponse = await http.get(
-      Uri.parse('http://10.11.3.86:8000/api/user'),
+      Uri.parse('${ApiConfig.baseUrl}/user'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -53,7 +54,7 @@ class _ProfilePageState extends State<ProfilePage>
 
     // Ambil postingan user (my-posts)
     final postsResponse = await http.get(
-      Uri.parse('http://10.11.3.86:8000/api/my-posts'),
+      Uri.parse('${ApiConfig.baseUrl}/my-posts'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',

@@ -66,7 +66,9 @@ class _CategoryListPageState extends State<CategoryListPage> {
                 const SnackBar(content: Text('Kategori berhasil dihapus')),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade600,
+              foregroundColor: Colors.white,),
             child: const Text('Hapus'),
           ),
         ],
@@ -92,7 +94,6 @@ class _CategoryListPageState extends State<CategoryListPage> {
         foregroundColor: Colors.white,
         elevation: 4,
       ),
-      // -------------------------------------------------------------
 
       body: SingleChildScrollView(
         // Tambahkan padding bawah ekstra agar list paling bawah tidak tertutup tombol

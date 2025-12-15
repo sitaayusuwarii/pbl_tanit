@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 
 class AuthService {
-  final String baseUrl = "http://10.11.3.86:8000/api"; // Android emulator
+  final String baseUrl = "${ApiConfig.baseUrl}"; // Android emulator
 
   Future<bool> register(String name, String email, String password) async {
     final response = await http.post(

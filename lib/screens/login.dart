@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'register.dart';
 import 'home.dart';
+import '../config/api_config.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
 
     try {
-      final url = Uri.parse("http://10.11.3.86:8000/api/auth/login");
+      final url = Uri.parse("${ApiConfig.baseUrl}/auth/login");
 
       final response = await http.post(
         url,

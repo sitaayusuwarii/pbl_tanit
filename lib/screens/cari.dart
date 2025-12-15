@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 
 class CariPage extends StatefulWidget {
   const CariPage({super.key});
@@ -49,7 +50,7 @@ class _CariPageState extends State<CariPage> {
       final token = prefs.getString('token') ?? '';
 
       final response = await http.get(
-        Uri.parse('http://10.11.3.86:8000/api/posts'),
+        Uri.parse('${ApiConfig.baseUrl}/posts'),
         headers: {'Authorization': 'Bearer $token'},
       );
 

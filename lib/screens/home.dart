@@ -11,6 +11,7 @@ import 'chatbot.dart';
 import 'komunitas.dart';
 import 'profile.dart';
 import 'upload_post.dart';
+import '../config/api_config.dart';
 
 class FullScreenImage extends StatelessWidget {
   final String imageUrl;
@@ -124,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final token = prefs.getString('token') ?? '';
 
       final response = await http.get(
-        Uri.parse('http://10.11.3.86:8000/api/posts'),
+        Uri.parse('${ApiConfig.baseUrl}/posts'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -495,7 +496,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final token = prefs.getString('token') ?? '';
 
     final response = await http.post(
-      Uri.parse('http://10.11.3.86:8000/api/posts/$postId/like'),
+      Uri.parse('${ApiConfig.baseUrl}/posts/$postId/like'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -519,7 +520,7 @@ void _showComments(int index, int postId) async {
   List initialComments = []; 
   try {
     final res = await http.get(
-      Uri.parse('http://10.11.3.86:8000/api/posts/$postId/comments'),
+      Uri.parse('${ApiConfig.baseUrl}/posts/$postId/comments'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (res.statusCode == 200) {
@@ -709,7 +710,7 @@ void _showComments(int index, int postId) async {
 
                         try {
                           final response = await http.post(
-                            Uri.parse('http://10.11.3.86:8000/api/posts/$postId/comments'),
+                            Uri.parse('${ApiConfig.baseUrl}/posts/$postId/comments'),
                             headers: {
                               'Authorization': 'Bearer $token',
                               'Content-Type': 'application/json',
@@ -970,7 +971,7 @@ void _showComments(int index, int postId) async {
                     final token = prefs.getString('token') ?? '';
 
                     final response = await http.post(
-                      Uri.parse('http://10.11.3.86:8000/api/posts'),
+                      Uri.parse('${ApiConfig.baseUrl}/posts'),
                       headers: {
                         'Authorization': 'Bearer $token',
                         'Content-Type': 'application/json',
@@ -1008,7 +1009,7 @@ void _showComments(int index, int postId) async {
     final token = prefs.getString('token') ?? '';
 
     final response = await http.delete(
-      Uri.parse('http://10.11.3.86:8000/api/posts/$postId'),
+      Uri.parse('${ApiConfig.baseUrl}/posts/$postId'),
       headers: {'Authorization': 'Bearer $token'},
     );
 

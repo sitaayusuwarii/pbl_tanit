@@ -5,6 +5,7 @@ import 'package:pbl_tanit/screens/saved_post_page.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'post_detail.dart';
+import '../config/api_config.dart';
 
 class ProfilePage extends StatefulWidget {
   final int? userId; // Null jika profile sendiri
@@ -50,7 +51,7 @@ String getAvatarUrl() {
   }
 
   // Jika tidak lengkap, tambahkan domain backend
-  return 'http://10.11.3.86:8000/storage/$avatar';
+  return '${ApiConfig.imageUrl}/$avatar';
 }
 
 
@@ -63,8 +64,8 @@ String getAvatarUrl() {
     final token = prefs.getString('token') ?? '';
 
     final url = widget.userId != null
-        ? 'http://10.11.3.86:8000/api/users/${widget.userId}'
-        : 'http://10.11.3.86:8000/api/user';
+        ? '${ApiConfig.baseUrl}/users/${widget.userId}'
+        : '${ApiConfig.baseUrl}/user';
 
     final response = await http.get(
       Uri.parse(url),
@@ -108,8 +109,8 @@ String getAvatarUrl() {
 
     // URL untuk postingan user sendiri atau user lain
     final url = widget.userId != null
-        ? 'http://10.11.3.86:8000/api/users/${widget.userId}/posts'
-        : 'http://10.11.3.86:8000/api/my-posts';
+        ? '${ApiConfig.baseUrl}/users/${widget.userId}/posts'
+        : '${ApiConfig.baseUrl}/my-posts';
 
     final response = await http.get(
       Uri.parse(url),
@@ -194,7 +195,7 @@ String getAvatarUrl() {
   Future<void> handleLike(int postId, int index) async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.11.3.86:8000/api/posts/$postId/like'),
+        Uri.parse('${ApiConfig.baseUrl}/posts/$postId/like'),
         headers: {
           'Authorization': 'Bearer YOUR_TOKEN_HERE',
           'Accept': 'application/json',
