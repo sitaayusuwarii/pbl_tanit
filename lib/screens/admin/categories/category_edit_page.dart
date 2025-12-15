@@ -3,6 +3,8 @@ import '../widgets/admin_appbar.dart';
 import '../widgets/admin_card.dart';
 
 class CategoryEditPage extends StatefulWidget {
+  // Constructor ini sebenarnya tidak terpakai jika pakai pushNamed + arguments,
+  // tapi kita biarkan saja agar kompatibel.
   final Map<String, dynamic>? category;
 
   const CategoryEditPage({Key? key, this.category}) : super(key: key);
@@ -14,13 +16,41 @@ class CategoryEditPage extends StatefulWidget {
 class _CategoryEditPageState extends State<CategoryEditPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  
+  // Flag untuk memastikan data hanya diambil sekali
+  bool _isDataInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(
-      text: widget.category?['name'] ?? '',
-    );
+    // Inisialisasi awal controller (kosong dulu)
+    _nameController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Kita ambil arguments di sini karena context baru tersedia sepenuhnya
+    if (!_isDataInitialized) {
+      // 1. Coba ambil dari Constructor (jika ada)
+      Map<String, dynamic>? categoryData = widget.category;
+
+      // 2. Jika Constructor kosong, ambil dari Arguments (pushNamed)
+      if (categoryData == null) {
+        final args = ModalRoute.of(context)?.settings.arguments;
+        if (args is Map<String, dynamic>) {
+          categoryData = args;
+        }
+      }
+
+      // 3. Isi Controller dengan data yang ditemukan
+      if (categoryData != null) {
+        _nameController.text = categoryData['name'] ?? '';
+      }
+      
+      _isDataInitialized = true;
+    }
   }
 
   void _updateCategory() {
@@ -31,6 +61,12 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
       );
       Navigator.pop(context);
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   @override
@@ -68,7 +104,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
-                      controller: _nameController,
+                      controller: _nameController, // Controller sudah terisi otomatis
                       decoration: InputDecoration(
                         hintText: 'Masukkan nama kategori',
                         border: OutlineInputBorder(
@@ -111,7 +147,13 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Update'),
+                            child: const Text(
+                              'Update',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -124,11 +166,5 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
   }
 }

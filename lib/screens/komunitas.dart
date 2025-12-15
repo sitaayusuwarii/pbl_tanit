@@ -38,7 +38,7 @@ class _KomunitasPageState extends State<KomunitasPage>
 
       // Fetch all communities
       final response = await http.get(
-        Uri.parse('http://192.168.1.6:8000/api/communities'),
+        Uri.parse('http://10.11.3.86:8000/api/communities'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -65,7 +65,7 @@ class _KomunitasPageState extends State<KomunitasPage>
       final token = prefs.getString('token') ?? '';
 
       final response = await http.post(
-        Uri.parse('http://192.168.1.6:8000/api/communities/$communityId/join'),
+        Uri.parse('http://10.11.3.86:8000/api/communities/$communityId/join'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -99,7 +99,7 @@ class _KomunitasPageState extends State<KomunitasPage>
       final token = prefs.getString('token') ?? '';
 
       final response = await http.post(
-        Uri.parse('http://192.168.1.6:8000/api/communities/$communityId/leave'),
+        Uri.parse('http://10.11.3.86:8000/api/communities/$communityId/leave'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -305,7 +305,7 @@ class _KomunitasPageState extends State<KomunitasPage>
                       final token = prefs.getString('token') ?? '';
 
                       final response = await http.post(
-                        Uri.parse('http://192.168.1.6:8000/api/communities'),
+                        Uri.parse('http://10.11.3.86:8000/api/communities'),
                         headers: {
                           'Authorization': 'Bearer $token',
                           'Content-Type': 'application/json',

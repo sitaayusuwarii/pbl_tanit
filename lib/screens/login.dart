@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
 
     try {
-      final url = Uri.parse("http://10.20.2.176:8000/api/auth/login");
+      final url = Uri.parse("http://10.11.3.86:8000/api/auth/login");
 
       final response = await http.post(
         url,
@@ -54,6 +54,7 @@ class _LoginPageState extends State<LoginPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", token);
         await prefs.setString("name", _userCtrl.text.trim());
+        await prefs.setString("role", role);
 
         if (mounted) {
   // SnackBar sesuai role

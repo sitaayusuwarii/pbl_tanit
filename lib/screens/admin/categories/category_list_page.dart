@@ -11,7 +11,9 @@ class CategoryListPage extends StatefulWidget {
 }
 
 class _CategoryListPageState extends State<CategoryListPage> {
-  // Mock data - replace with API calls
+  final _searchController = TextEditingController();
+
+  // Mock data
   final List<Map<String, dynamic>> categories = [
     {
       'id': 1,
@@ -39,7 +41,14 @@ class _CategoryListPageState extends State<CategoryListPage> {
     },
   ];
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _deleteCategory(int id) {
+    // ... (kode dialog hapus tetap sama) ...
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -52,15 +61,12 @@ class _CategoryListPageState extends State<CategoryListPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              // Handle delete - call API
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Kategori berhasil dihapus')),
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Hapus'),
           ),
         ],
@@ -74,115 +80,142 @@ class _CategoryListPageState extends State<CategoryListPage> {
       backgroundColor: Colors.grey.shade100,
       appBar: const AdminAppBar(title: 'Manajemen Kategori'),
       drawer: const AdminSidebar(currentRoute: '/admin/categories'),
+      
+      // --- BAGIAN INI YANG BARU (TOMBOL MELAYANG DI KANAN BAWAH) ---
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.pushNamed(context, '/admin/categories/add');
+        },
+        label: const Text('Tambah Kategori'),
+        icon: const Icon(Icons.add),
+        backgroundColor: Colors.green.shade600,
+        foregroundColor: Colors.white,
+        elevation: 4,
+      ),
+      // -------------------------------------------------------------
+
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        // Tambahkan padding bawah ekstra agar list paling bawah tidak tertutup tombol
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 80), 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Daftar Kategori',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/admin/categories/add');
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah Kategori'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade600,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ],
+            // HEADER: Hanya Judul (Tombol Add sudah pindah ke bawah)
+            const Text(
+              'Daftar Kategori',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
-            const SizedBox(height: 24),
             
-            AdminCard(
-              padding: EdgeInsets.zero,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  headingRowColor: MaterialStateProperty.all(
-                    Colors.grey.shade50,
-                  ),
-                  columns: const [
-                    DataColumn(
-                      label: Text(
-                        'Nama Kategori',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Jumlah Post',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Tanggal Dibuat',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Aksi',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                  rows: categories.map((category) {
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                          Text(
-                            category['name'],
-                            style: const TextStyle(fontWeight: FontWeight.w500),
+            const SizedBox(height: 24),
+
+            // SEARCH BAR
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari kategori...',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // LIST KATEGORI
+            ...categories.map((category) => Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: AdminCard(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // 1. ICON KIRI
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade100,
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          child: Icon(Icons.category, 
+                              color: Colors.green.shade700),
                         ),
-                        DataCell(Text(category['postCount'].toString())),
-                        DataCell(Text(category['createdAt'])),
-                        DataCell(
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
+
+                        const SizedBox(width: 16),
+
+                        // 2. TEXT TENGAH
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    '/admin/categories/edit',
-                                    arguments: category,
-                                  );
-                                },
+                              Text(
+                                category['name'],
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deleteCategory(category['id']),
+                              const SizedBox(height: 6),
+                              Text(
+                                "Total Postingan: ${category['postCount']}",
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "Dibuat: ${category['createdAt']}",
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
                         ),
+
+                        // 3. TOMBOL AKSI
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/admin/categories/edit',
+                                  arguments: category,
+                                );
+                              },
+                              icon: const Icon(Icons.edit),
+                              color: Colors.blue,
+                              tooltip: 'Edit',
+                              constraints: const BoxConstraints(),
+                              padding: const EdgeInsets.all(8),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              onPressed: () => _deleteCategory(category['id']),
+                              icon: const Icon(Icons.delete),
+                              color: Colors.red,
+                              tooltip: 'Hapus',
+                              constraints: const BoxConstraints(),
+                              padding: const EdgeInsets.all(8),
+                            ),
+                          ],
+                        ),
                       ],
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
+                    ),
+                  ),
+                )),
           ],
         ),
       ),

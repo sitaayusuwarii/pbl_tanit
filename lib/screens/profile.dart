@@ -50,7 +50,7 @@ String getAvatarUrl() {
   }
 
   // Jika tidak lengkap, tambahkan domain backend
-  return 'http://10.20.2.176:8000/storage/$avatar';
+  return 'http://10.11.3.86:8000/storage/$avatar';
 }
 
 
@@ -63,8 +63,8 @@ String getAvatarUrl() {
     final token = prefs.getString('token') ?? '';
 
     final url = widget.userId != null
-        ? 'http://10.20.2.176:8000/api/users/${widget.userId}'
-        : 'http://10.20.2.176:8000/api/user';
+        ? 'http://10.11.3.86:8000/api/users/${widget.userId}'
+        : 'http://10.11.3.86:8000/api/user';
 
     final response = await http.get(
       Uri.parse(url),
@@ -108,8 +108,8 @@ String getAvatarUrl() {
 
     // URL untuk postingan user sendiri atau user lain
     final url = widget.userId != null
-        ? 'http://10.20.2.176:8000/api/users/${widget.userId}/posts'
-        : 'http://10.20.2.176:8000/api/my-posts';
+        ? 'http://10.11.3.86:8000/api/users/${widget.userId}/posts'
+        : 'http://10.11.3.86:8000/api/my-posts';
 
     final response = await http.get(
       Uri.parse(url),
@@ -194,7 +194,7 @@ String getAvatarUrl() {
   Future<void> handleLike(int postId, int index) async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.20.2.176:8000/api/posts/$postId/like'),
+        Uri.parse('http://10.11.3.86:8000/api/posts/$postId/like'),
         headers: {
           'Authorization': 'Bearer YOUR_TOKEN_HERE',
           'Accept': 'application/json',

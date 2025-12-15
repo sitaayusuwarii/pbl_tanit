@@ -12,7 +12,7 @@ class UserListPage extends StatefulWidget {
 
 class _UserListPageState extends State<UserListPage> {
   final _searchController = TextEditingController();
-  
+
   // Mock data
   final List<Map<String, dynamic>> users = [
     {
@@ -49,12 +49,19 @@ class _UserListPageState extends State<UserListPage> {
     },
   ];
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _deleteUser(int id) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Konfirmasi Hapus'),
-        content: const Text('Apakah Anda yakin ingin menghapus user ini? Semua postingan user juga akan dihapus.'),
+        content: const Text(
+            'Apakah Anda yakin ingin menghapus user ini? Semua postingan user juga akan dihapus.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -88,6 +95,7 @@ class _UserListPageState extends State<UserListPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // HEADER: Judul & Search Bar
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -99,170 +107,165 @@ class _UserListPageState extends State<UserListPage> {
                     color: Colors.black87,
                   ),
                 ),
-                SizedBox(
-                  width: 300,
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Cari user...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                  ),
-                ),
               ],
             ),
-            const SizedBox(height: 24),
             
-            AdminCard(
-              padding: EdgeInsets.zero,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  headingRowColor: MaterialStateProperty.all(
-                    Colors.grey.shade50,
-                  ),
-                  columnSpacing: 40,
-                  columns: const [
-                    DataColumn(
-                      label: Text(
-                        'Nama',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Email',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Total Post',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Bergabung',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Status',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Aksi',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                  rows: users.map((user) {
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: Colors.green.shade600,
-                                child: Text(
-                                  user['name'][0],
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                user['name'],
-                                style: const TextStyle(fontWeight: FontWeight.w500),
-                              ),
-                            ],
-                          ),
-                        ),
-                        DataCell(Text(user['email'])),
-                        DataCell(
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
+            const SizedBox(height: 24),
+
+            // Search Bar (Full Width)
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari user...',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // LIST USER (Style Card seperti Postingan)
+            ...users.map((user) => Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: GestureDetector(
+                    onTap: () {
+                      // Tetap menggunakan Route Lama (Detail)
+                      Navigator.pushNamed(
+                        context,
+                        '/admin/users/detail',
+                        arguments: user,
+                      );
+                    },
+                    child: AdminCard(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 1. AVATAR KIRI
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: Colors.green.shade600,
                             child: Text(
-                              user['posts'].toString(),
-                              style: TextStyle(
-                                color: Colors.blue.shade700,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                        DataCell(Text(user['joined'])),
-                        DataCell(
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade50,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              user['status'].toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.green.shade700,
+                              user['name'][0].toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 18,
                               ),
                             ),
                           ),
-                        ),
-                        DataCell(
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
+
+                          const SizedBox(width: 16),
+
+                          // 2. TEXT TENGAH (Nama, Email, Info)
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user['name'],
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  user['email'],
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                
+                                // Chips Status & Posts
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    // Chip Post Count
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        "${user['posts']} Posts",
+                                        style: TextStyle(
+                                          color: Colors.blue.shade700,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    // Chip Joined Date
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        "Joined: ${user['joined']}",
+                                        style: TextStyle(
+                                          color: Colors.grey.shade700,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // 3. TOMBOL AKSI (Delete & Detail)
+                          Column(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.visibility, color: Colors.blue),
+                                onPressed: () => _deleteUser(user['id']),
+                                icon: const Icon(Icons.delete),
+                                color: Colors.red,
+                                tooltip: 'Hapus User',
+                              ),
+                              IconButton(
                                 onPressed: () {
+                                  // Navigasi ke Detail (Sama seperti onTap card)
                                   Navigator.pushNamed(
                                     context,
                                     '/admin/users/detail',
                                     arguments: user,
                                   );
                                 },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deleteUser(user['id']),
+                                icon: const Icon(Icons.arrow_forward_ios),
+                                color: Colors.grey.shade400,
+                                iconSize: 18,
+                                tooltip: 'Lihat Detail',
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )),
           ],
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 }

@@ -40,7 +40,7 @@ class _SavedPostsPageState extends State<SavedPostsPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.20.2.176/api/saved-posts?page=$currentPage'),
+        Uri.parse('http://10.11.3.86/api/saved-posts?page=$currentPage'),
         headers: {
           'Authorization': 'Bearer YOUR_TOKEN_HERE',
           'Accept': 'application/json',
@@ -85,7 +85,7 @@ class _SavedPostsPageState extends State<SavedPostsPage> {
   Future<void> handleUnsavePost(int postId, int index) async {
     try {
       final response = await http.delete(
-        Uri.parse('http://10.20.2.176/api/posts/$postId/unsave'),
+        Uri.parse('http://10.11.3.86/api/posts/$postId/unsave'),
         headers: {
           'Authorization': 'Bearer YOUR_TOKEN_HERE',
           'Accept': 'application/json',
@@ -112,7 +112,7 @@ class _SavedPostsPageState extends State<SavedPostsPage> {
   Future<void> handleLike(int postId, int index) async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.20.2.176/api/posts/$postId/like'),
+        Uri.parse('http://10.11.3.86/api/posts/$postId/like'),
         headers: {
           'Authorization': 'Bearer YOUR_TOKEN_HERE',
           'Accept': 'application/json',

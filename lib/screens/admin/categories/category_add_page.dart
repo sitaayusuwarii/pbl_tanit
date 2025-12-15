@@ -101,7 +101,13 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Simpan'),
+                            child: const Text(
+                              'Simpan',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
                           ),
                         ),
                       ],

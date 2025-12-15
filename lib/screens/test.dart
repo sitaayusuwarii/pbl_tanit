@@ -44,7 +44,7 @@ class _ProfilePageState extends State<ProfilePage>
 
     // Ambil data user
     final userResponse = await http.get(
-      Uri.parse('http://192.168.1.14:8000/api/user'),
+      Uri.parse('http://10.11.3.86:8000/api/user'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -53,7 +53,7 @@ class _ProfilePageState extends State<ProfilePage>
 
     // Ambil postingan user (my-posts)
     final postsResponse = await http.get(
-      Uri.parse('http://192.168.1.14:8000/api/my-posts'),
+      Uri.parse('http://10.11.3.86:8000/api/my-posts'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
