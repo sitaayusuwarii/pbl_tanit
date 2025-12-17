@@ -1,25 +1,38 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'dart:typed_data';
 
-Future<void> uploadPost(Uint8List imageBytes, String description, String category, String token) async {
-  var request = http.MultipartRequest('POST', Uri.parse('http://127.0.0.1:8000/api/posts'));
-  request.headers['Authorization'] = 'Bearer $token';
+class ChatService {
+  static const String _apiKey = 'ISI_API_KEY_KAMU';
 
-  request.fields['description'] = description;
-  request.fields['category'] = category;
+  static const String _endpoint =
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=$_apiKey';
 
-  if (imageBytes != null) {
-    request.files.add(http.MultipartFile.fromBytes(
-      'image',
-      imageBytes,
-      filename: 'upload.png',
-    ));
-  }
+  Future<String> sendMessageWithImageAndText({
+    required String text,
+    dynamic image, // sementara abaikan image
+  }) async {
+    final body = {
+      'contents': [
+        {
+          'parts': [
+            {'text': text}
+          ]
+        }
+      ]
+    };
 
-  var response = await request.send();
-  if (response.statusCode == 201) {
-    print('Upload berhasil');
-  } else {
-    print('Upload gagal: ${response.statusCode}');
+    final response = await http.post(
+      Uri.parse(_endpoint),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(response.body);
+    }
+
+    final data = jsonDecode(response.body);
+
+    return data['candidates'][0]['content']['parts'][0]['text'];
   }
 }

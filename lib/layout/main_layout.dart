@@ -17,58 +17,58 @@ class MainLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF66BB6A), Color(0xFF2E7D32)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.agriculture,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              'TaniTalk',
-              style: TextStyle(
-                fontFamily: 'PublicSans',
-                color: Color(0xFF1A1A1A),
-                fontWeight: FontWeight.w800,
-                fontSize: 22,
-                letterSpacing: -0.5,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.grey[200]!,
-                  Colors.grey[300]!,
-                  Colors.grey[200]!,
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+      // appBar: AppBar(
+      //   title: Row(
+      //     mainAxisSize: MainAxisSize.min,
+      //     children: [
+      //       Container(
+      //         padding: const EdgeInsets.all(6),
+      //         decoration: BoxDecoration(
+      //           gradient: const LinearGradient(
+      //             colors: [Color(0xFF66BB6A), Color(0xFF2E7D32)],
+      //             begin: Alignment.topLeft,
+      //             end: Alignment.bottomRight,
+      //           ),
+      //           borderRadius: BorderRadius.circular(8),
+      //         ),
+      //         child: const Icon(
+      //           Icons.agriculture,
+      //           color: Colors.white,
+      //           size: 20,
+      //         ),
+      //       ),
+      //       const SizedBox(width: 10),
+      //       const Text(
+      //         'TaniTalk',
+      //         style: TextStyle(
+      //           fontFamily: 'PublicSans',
+      //           color: Color(0xFF1A1A1A),
+      //           fontWeight: FontWeight.w800,
+      //           fontSize: 22,
+      //           letterSpacing: -0.5,
+      //         ),
+      //       ),
+      //     ],
+      //   ),
+      //   centerTitle: true,
+      //   backgroundColor: Colors.white,
+      //   elevation: 0,
+      //   bottom: PreferredSize(
+      //     preferredSize: const Size.fromHeight(1),
+      //     child: Container(
+      //       height: 1,
+      //       decoration: BoxDecoration(
+      //         gradient: LinearGradient(
+      //           colors: [
+      //             Colors.grey[200]!,
+      //             Colors.grey[300]!,
+      //             Colors.grey[200]!,
+      //           ],
+      //         ),
+      //       ),
+      //     ),
+      //   ),
+      // ),
       body: SafeArea(
         child: Container(
           color: Colors.grey[50],

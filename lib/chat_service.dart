@@ -1,23 +1,45 @@
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'secrets.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ChatService {
-  late final GenerativeModel _model;
-  late final ChatSession _chat;
+  static const String _apiKey = 'AIzaSyC452LfUkqvtCUms_dJw7jQP_aqx8H7f7E';
+  static const String _baseUrl =
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
-  ChatService() {
-    _model = GenerativeModel(
-      model: "gemini-1.5-flash",
-      apiKey: GEMINI_API_KEY,
+  Future<String> sendMessageWithImageAndText({
+    required String text,
+  }) async {
+    final uri = Uri.parse('$_baseUrl?key=$_apiKey');
+
+    final body = {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [
+            {"text": text}
+          ]
+        }
+      ]
+    };
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(body),
     );
-    _chat = _model.startChat();
-  }
 
-  Future<String> sendMessage(String message) async {
-    final response = await _chat.sendMessage(
-      Content.text(message),
-    );
+    print("STATUS: ${response.statusCode}");
+    print("BODY: ${response.body}");
 
-    return response.text ?? "Maaf, tidak ada jawaban.";
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      return data['candidates'][0]['content']['parts'][0]['text']
+          ?? 'Tidak ada jawaban';
+    } else {
+      throw Exception('Gagal menghubungi AI');
+    }
   }
 }

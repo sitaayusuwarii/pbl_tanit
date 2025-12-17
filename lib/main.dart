@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pbl_tanit/screens/admin/categories/category_edit_page.dart';
 import 'package:pbl_tanit/screens/admin/categories/category_list_page.dart';
 import 'package:pbl_tanit/screens/admin/dashboard/admin_dashboard.dart';
 import 'package:pbl_tanit/screens/admin/users/user_list_page.dart';
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
           primary: Colors.green[800]!,
           secondary: Colors.green[400]!,
         ),
-        scaffoldBackgroundColor: Colors.green[50],
+        scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
         fontFamily: 'Roboto',
       ),
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
          '/admin/categories': (context) => const CategoryListPage(),
         '/admin/posts': (context) => const PostListPage(),
         '/admin/users': (context) => const UserListPage(),
+        '/admin/categories/edit': (context) => CategoryEditPage(),
         '/home': (context) => const HomeScreen(),
       },
     );

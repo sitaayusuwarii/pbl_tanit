@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'register.dart';
 import 'home.dart';
+import '../config.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
 
     try {
-      final url = Uri.parse("http://172.16.3.137:8000/api/auth/login");
+      final url = Uri.parse("${AppConfig.baseUrl}/auth/login");
       final response = await http.post(
         url,
         body: {
@@ -47,12 +48,16 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final token = data["access_token"] ?? "";
+        final user  = data["user"];
         final role  = data["role"];            
         final userId = data["user"]["id"];
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", token);
-        await prefs.setString("name", _userCtrl.text.trim());
+        // await prefs.setString("name", _userCtrl.text.trim());
+        await prefs.setInt("user_id", userId);
+
+        await prefs.setString("user", jsonEncode(user));
 
         if (mounted) {
   // SnackBar sesuai role
@@ -136,50 +141,37 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               // Header dengan Gradient
-              Container(
-                width: double.infinity,
-                height: MediaQuery.of(context).size.height * 0.35,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF66BB6A), Color(0xFF2E7D32)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(40),
-                    bottomRight: Radius.circular(40),
-                  ),
+             Container(
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.35,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF66BB6A), Color(0xFF2E7D32)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    // Logo
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 150,
+                      width: 150,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.agriculture,
+                        size: 130,
                         color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        height: 80,
-                        width: 80,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.agriculture,
-                          size: 80,
-                          color: Color(0xFF2E7D32),
-                        ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 10),
                     const Text(
                       'TaniTalk',
                       style: TextStyle(
@@ -190,19 +182,19 @@ class _LoginPageState extends State<LoginPage> {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     const Text(
                       'Tumbuh bersama teknologi pertanian',
                       style: TextStyle(
                         fontFamily: 'PublicSans',
                         fontSize: 15,
                         color: Colors.white,
-                        letterSpacing: 0.3,
                       ),
                     ),
                   ],
                 ),
               ),
+            ),
 
               // Form Section
               Padding(

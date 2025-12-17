@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../config.dart';
 
 class UploadPostScreen extends StatefulWidget {
   final Uint8List imageBytes;
@@ -14,18 +15,49 @@ class UploadPostScreen extends StatefulWidget {
 
 class _UploadPostScreenState extends State<UploadPostScreen> {
   final TextEditingController _descController = TextEditingController();
-  String? _selectedCategory;
+ 
   
   bool _loading = false;
 
-  final List<Map<String, dynamic>> _categories = [
-    {'name': 'Padi', 'icon': '🌾', 'color': Color(0xFFFFA726)},
-    {'name': 'Kopi', 'icon': '☕', 'color': Color(0xFF8D6E63)},
-    {'name': 'Cokelat', 'icon': '🍫', 'color': Color(0xFF6D4C41)},
-    {'name': 'Jagung', 'icon': '🌽', 'color': Color(0xFFFFEB3B)},
-    {'name': 'Sayuran', 'icon': '🥬', 'color': Color(0xFF66BB6A)},
-    {'name': 'Buah-buahan', 'icon': '🍎', 'color': Color(0xFFEF5350)},
-  ];
+@override
+void initState() {
+  super.initState();
+  _fetchCategories();
+}
+
+  List<dynamic> _categories = [];
+String? _selectedCategoryId;
+
+Future<void> _fetchCategories() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token') ?? '';
+
+  final res = await http.get(
+    Uri.parse("${AppConfig.baseUrl}/categories"),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+    },
+  );
+
+  print("===== FETCH CATEGORIES DEBUG =====");
+  print("STATUS: ${res.statusCode}");
+  print("BODY: ${res.body}");
+
+  try {
+    final decoded = jsonDecode(res.body);
+    setState(() {
+      _categories = decoded['data'] ?? [];
+    });
+
+  } catch (e) {
+    print("JSON ERROR: $e");
+  }
+}
+
+
+
+
 
   @override
   void dispose() {
@@ -52,22 +84,40 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
     return;
   }
 
-  setState(() => _loading = true);
+ setState(() => _loading = true);
+
+if (_selectedCategoryId == null) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Pilih kategori terlebih dahulu')),
+  );
+  setState(() => _loading = false);
+  return;
+}
+
 
   try {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
     final desc = _descController.text.trim();
-    final category = _selectedCategory ?? 'Tidak ada kategori';
+    final category = _selectedCategoryId!;
+
 
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://192.168.1.6:8000/api/posts'),
+      Uri.parse('${AppConfig.baseUrl}/posts'),
     );
 
     request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
+
+
+    request.headers['Authorization'] = 'Bearer $token';
     request.fields['description'] = desc;
-    request.fields['category'] = category;
+    if (_selectedCategoryId != null) {
+  request.fields['category_id'] = _selectedCategoryId!;
+}
+
+
 
     request.files.add(
       http.MultipartFile.fromBytes(
@@ -113,13 +163,17 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
         Navigator.pop(context, true);
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal posting: ${response.statusCode}'),
-          backgroundColor: Colors.red[700],
-        ),
-      );
-    }
+  print("🔴 POSTING ERROR ${response.statusCode}");
+  print("🔴 BODY: $responseBody");
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Gagal posting: $responseBody'),
+      backgroundColor: Colors.red[700],
+    ),
+  );
+}
+
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -446,54 +500,40 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
                   const SizedBox(height: 16),
                   // Dropdown Category
 Container(
-  padding: const EdgeInsets.symmetric(horizontal: 16),
+  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), // ← tambah height
+  height: 50, // ← WAJIB! Biar dropdown area kliknya ada
   decoration: BoxDecoration(
     color: Colors.grey[100],
     borderRadius: BorderRadius.circular(12),
     border: Border.all(color: Colors.grey[300]!),
   ),
+  
   child: DropdownButtonHideUnderline(
     child: DropdownButton<String>(
-      value: _selectedCategory,
-      hint: const Text(
-        "Pilih kategori",
-        style: TextStyle(
-          fontFamily: 'PublicSans',
-          color: Color(0xFF1A1A1A),
-          fontWeight: FontWeight.w500,
-        ),
-      ),
+      isExpanded: true,   // ← WAJIB BIAR MELEBAR
+      value: _selectedCategoryId,
+      hint: const Text("Pilih kategori"),
+      
       icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF2E7D32)),
-      items: _categories.map((category) {
+      items: _categories.map<DropdownMenuItem<String>>((category) {
         return DropdownMenuItem<String>(
-          value: category['name'] as String,
-          child: Row(
-            children: [
-              Text(
-                category['icon'] as String,
-                style: const TextStyle(fontSize: 18),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                category['name'] as String,
-                style: const TextStyle(
-                  fontFamily: 'PublicSans',
-                  fontSize: 14,
-                  color: Color(0xFF1A1A1A),
-                ),
-              ),
-            ],
-          ),
+          value: category['id'].toString(),
+          child: Text(category['category']),
         );
+        
       }).toList(),
       onChanged: (value) {
         setState(() {
-          _selectedCategory = value;
+          _selectedCategoryId = value;
         });
       },
     ),
   ),
-),
+)
+
+
+
+
                 ],
               ),
             ),

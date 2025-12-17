@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import '../widgets/admin_appbar.dart';
 import '../widgets/admin_card.dart';
 
@@ -18,18 +21,36 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
   @override
   void initState() {
     super.initState();
+
+    // Ambil field dari API (category)
     _nameController = TextEditingController(
-      text: widget.category?['name'] ?? '',
+      text: widget.category?['category'] ?? '',
     );
   }
 
-  void _updateCategory() {
-    if (_formKey.currentState!.validate()) {
-      // Handle update - call API
+  Future<void> _updateCategory() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final int id = widget.category?['id'];
+
+    final url = Uri.parse("https://your-api-url.com/api/categories/$id");
+
+    final response = await http.put(
+      url,
+      body: {
+        "category": _nameController.text, // sesuaikan field backend
+      },
+    );
+
+    if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Kategori berhasil diupdate')),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true); // kembali + refresh list
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal mengupdate kategori')),
+      );
     }
   }
 
@@ -52,7 +73,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             AdminCard(
               child: Form(
                 key: _formKey,
@@ -67,6 +88,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                       ),
                     ),
                     const SizedBox(height: 8),
+
                     TextFormField(
                       controller: _nameController,
                       decoration: InputDecoration(
@@ -77,22 +99,22 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                         filled: true,
                         fillColor: Colors.grey.shade50,
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Nama kategori tidak boleh kosong';
-                        }
-                        return null;
-                      },
+                      validator: (value) =>
+                          value == null || value.isEmpty
+                              ? 'Nama kategori tidak boleh kosong'
+                              : null,
                     ),
+
                     const SizedBox(height: 24),
-                    
+
                     Row(
                       children: [
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () => Navigator.pop(context),
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -101,12 +123,14 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
                           ),
                         ),
                         const SizedBox(width: 16),
+
                         Expanded(
                           child: ElevatedButton(
                             onPressed: _updateCategory,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green.shade600,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),

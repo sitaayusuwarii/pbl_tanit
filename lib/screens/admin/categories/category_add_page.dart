@@ -1,4 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../widgets/admin_appbar.dart';
 import '../widgets/admin_card.dart';
 
@@ -12,14 +16,47 @@ class CategoryAddPage extends StatefulWidget {
 class _CategoryAddPageState extends State<CategoryAddPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  bool loading = false;
 
-  void _saveCategory() {
-    if (_formKey.currentState!.validate()) {
-      // Handle save - call API
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kategori berhasil ditambahkan')),
+  Future<void> _saveCategory() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => loading = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+
+      final response = await http.post(
+        Uri.parse("http://192.168.1.6:8000/api/categories"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json",
+        },
+        body: {
+          "category": _nameController.text,
+        },
       );
-      Navigator.pop(context);
+
+      setState(() => loading = false);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kategori berhasil ditambahkan')),
+        );
+
+        Navigator.pop(context, true); // return true agar list refresh
+      } else {
+        final error = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Gagal: ${error['message'] ?? 'Error'}")),
+        );
+      }
+    } catch (e) {
+      setState(() => loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Terjadi kesalahan: $e")),
+      );
     }
   }
 
@@ -93,7 +130,7 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _saveCategory,
+                            onPressed: loading ? null : _saveCategory,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green.shade600,
                               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -101,7 +138,16 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Simpan'),
+                            child: loading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text('Simpan'),
                           ),
                         ),
                       ],
