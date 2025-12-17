@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 
 class AuthService {
-  final String baseUrl = "${ApiConfig.baseUrl}"; // Android emulator
+  final String baseUrl = "${ApiConfig.baseUrl}";
 
   Future<bool> register(String name, String email, String password) async {
     final response = await http.post(

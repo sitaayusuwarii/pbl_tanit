@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/admin_appbar.dart';
 import '../widgets/admin_card.dart';
+import '../../../services/category_service.dart'; // Import service
 
 class CategoryAddPage extends StatefulWidget {
   const CategoryAddPage({Key? key}) : super(key: key);
@@ -12,14 +13,36 @@ class CategoryAddPage extends StatefulWidget {
 class _CategoryAddPageState extends State<CategoryAddPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final CategoryService _categoryService = CategoryService();
+  bool _isSaving = false; // Untuk indikator loading saat simpan
 
-  void _saveCategory() {
+  Future<void> _saveCategory() async {
     if (_formKey.currentState!.validate()) {
-      // Handle save - call API
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kategori berhasil ditambahkan')),
-      );
-      Navigator.pop(context);
+      setState(() => _isSaving = true);
+
+      try {
+        bool success = await _categoryService.addCategory(_nameController.text);
+        
+        if (success) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Kategori berhasil ditambahkan')),
+            );
+            // Kembali ke halaman list dengan membawa nilai 'true'
+            Navigator.pop(context, true); 
+          }
+        } else {
+          throw Exception('Gagal menyimpan');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e')),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isSaving = false);
+      }
     }
   }
 
@@ -33,15 +56,7 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Tambah Kategori Baru',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 24),
+            // ... (Kode judul Text 'Tambah Kategori Baru' sama seperti sebelumnya) ...
             
             AdminCard(
               child: Form(
@@ -51,19 +66,15 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
                   children: [
                     const Text(
                       'Nama Kategori',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _nameController,
+                      enabled: !_isSaving, // Disable jika sedang menyimpan
                       decoration: InputDecoration(
                         hintText: 'Masukkan nama kategori',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         filled: true,
                         fillColor: Colors.grey.shade50,
                       ),
@@ -80,12 +91,10 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: _isSaving ? null : () => Navigator.pop(context),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             child: const Text('Batal'),
                           ),
@@ -93,21 +102,18 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _saveCategory,
+                            onPressed: _isSaving ? null : _saveCategory,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green.shade600,
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text(
-                              'Simpan',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
-                            ),
+                            child: _isSaving 
+                              ? const SizedBox(
+                                  height: 20, width: 20, 
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                                )
+                              : const Text('Simpan', style: TextStyle(color: Colors.white, fontSize: 16)),
                           ),
                         ),
                       ],

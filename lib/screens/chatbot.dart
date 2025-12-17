@@ -19,7 +19,7 @@ class _ChatbotPageState extends State<ChatbotPage>
     with SingleTickerProviderStateMixin {
   
   // GEMINI API KEY
-  static const String _apiKey = ''; 
+  static const String _apiKey = '';
   
   late final GenerativeModel _model;
   late ChatSession _chatSession;
@@ -49,7 +49,7 @@ class _ChatbotPageState extends State<ChatbotPage>
     _loadHistory();     
   }
 
-  // --- LOGIKA LOAD & SAVE HISTORY ---
+  // LOGIKA LOAD & SAVE HISTORY
 
   Future<void> _loadHistory() async {
     final prefs = await SharedPreferences.getInstance();
@@ -89,13 +89,12 @@ class _ChatbotPageState extends State<ChatbotPage>
     await prefs.setString('chat_history', jsonEncode(encodedData));
   }
 
-  // --- LOGIKA HAPUS (BARU) ---
-  
+  // LOGIKA HAPUS RIWAYAT
   void _deleteHistoryItem(int index) {
     setState(() {
-      _history.removeAt(index); // Hapus dari list
+      _history.removeAt(index);
     });
-    _saveHistory(); // Simpan perubahan ke HP
+    _saveHistory(); 
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -119,8 +118,8 @@ class _ChatbotPageState extends State<ChatbotPage>
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(ctx); // Tutup popup
-              _deleteHistoryItem(index); // Hapus data
+              Navigator.pop(ctx); 
+              _deleteHistoryItem(index); 
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,

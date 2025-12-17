@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -420,9 +419,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Divider(color: Colors.grey[200], height: 1),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 1),
 
                   // Action buttons
                   Row(
@@ -626,7 +625,7 @@ void _showComments(int index, int postId) async {
                                     // Pastikan path image benar dan server berjalan
                                     backgroundImage: c['user']?['profile_picture'] != null
                                         ? NetworkImage(
-                                            'http://192.168.1.11:8000/storage/${c['user']['profile_picture']}')
+                                            '${ApiConfig.baseUrl}/${c['user']['profile_picture']}')
                                         : const AssetImage('assets/images/default_profile.png')
                                             as ImageProvider,
                                   ),
