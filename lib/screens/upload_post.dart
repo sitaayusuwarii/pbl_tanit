@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../config/api_config.dart';
+import '../services/category_service.dart'; 
 
 class UploadPostScreen extends StatefulWidget {
   final Uint8List imageBytes;
@@ -14,17 +16,20 @@ class UploadPostScreen extends StatefulWidget {
 
 class _UploadPostScreenState extends State<UploadPostScreen> {
   final TextEditingController _descController = TextEditingController();
-  String? _selectedCategory;
-  bool _loading = false;
+  final CategoryService _categoryService = CategoryService(); 
 
-  final List<Map<String, dynamic>> _categories = [
-    {'name': 'Padi', 'icon': '🌾', 'color': Color(0xFFFFA726)},
-    {'name': 'Kopi', 'icon': '☕', 'color': Color(0xFF8D6E63)},
-    {'name': 'Cokelat', 'icon': '🍫', 'color': Color(0xFF6D4C41)},
-    {'name': 'Jagung', 'icon': '🌽', 'color': Color(0xFFFFEB3B)},
-    {'name': 'Sayuran', 'icon': '🥬', 'color': Color(0xFF66BB6A)},
-    {'name': 'Buah-buahan', 'icon': '🍎', 'color': Color(0xFFEF5350)},
-  ];
+  String? _selectedCategory;
+  bool _loading = false; 
+  
+  // State untuk Data Kategori dari API
+  List<dynamic> _categories = [];
+  bool _isLoadingCategories = true; 
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategories(); 
+  }
 
   @override
   void dispose() {
@@ -32,105 +37,140 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
     super.dispose();
   }
 
- Future<void> _postImage() async {
-  if (_descController.text.trim().isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.white),
-            SizedBox(width: 12),
-            Text('Deskripsi tidak boleh kosong'),
-          ],
-        ),
-        backgroundColor: Colors.orange[700],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-    return;
+  // FUNGSI 1: AMBIL KATEGORI DARI API 
+  Future<void> _fetchCategories() async {
+    try {
+      final data = await _categoryService.getCategories();
+      if (mounted) {
+        setState(() {
+          _categories = data;
+          _isLoadingCategories = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingCategories = false);
+        print("Error fetching categories: $e");
+      }
+    }
   }
 
-  setState(() => _loading = true);
+  // FUNGSI 2: HELPER UNTUK STYLE (ICON & WARNA)
+  Map<String, dynamic> _getCategoryStyle(String categoryName) {
+    final name = categoryName.toLowerCase();
 
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
-    final desc = _descController.text.trim();
-    final category = _selectedCategory ?? 'Tidak ada kategori';
+    if (name.contains('padi')) return {'icon': '🌾', 'color': const Color(0xFFFFA726)};
+    if (name.contains('kopi')) return {'icon': '☕', 'color': const Color(0xFF8D6E63)};
+    if (name.contains('cokelat') || name.contains('kakao')) return {'icon': '🍫', 'color': const Color(0xFF6D4C41)};
+    if (name.contains('jagung')) return {'icon': '🌽', 'color': const Color(0xFFFFEB3B)};
+    if (name.contains('sayur')) return {'icon': '🥬', 'color': const Color(0xFF66BB6A)};
+    if (name.contains('buah')) return {'icon': '🍎', 'color': const Color(0xFFEF5350)};
+    if (name.contains('hidroponik')) return {'icon': '💧', 'color': Colors.blue};
+    if (name.contains('bawang')) return {'icon': '🧄', 'color': const Color(0xFF795548)};
+    if (name.contains('ternak') || name.contains('sapi')) return {'icon': '🐄', 'color': Colors.brown};
+    
+    // Default style untuk kategori lain yang belum terdaftar
+    return {'icon': '🌱', 'color': const Color(0xFF2E7D32)}; 
+  }
 
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('http://10.20.2.176:8000/api/posts'),
-    );
-
-    request.headers['Authorization'] = 'Bearer $token';
-    request.fields['description'] = desc;
-    request.fields['category'] = category;
-
-    request.files.add(
-      http.MultipartFile.fromBytes(
-        'image',
-        widget.imageBytes,
-        filename: 'post_image.jpg',
-      ),
-    );
-
-    final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-
-    print('📦 Server response: $responseBody');
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      // ✅ Tambahan: ambil URL dari respons server
-      final decoded = jsonDecode(responseBody);
-      final imageUrl = decoded['post']?['image_url'] ?? 
-                 decoded['data']?['image_url'] ?? 
-                 decoded['image_url'] ?? '';
-
-
-      // ✅ Simpan ke SharedPreferences biar bisa di-load lagi nanti
-      await prefs.setString('lastUploadedImageUrl', imageUrl);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 12),
-                Text('Postingan berhasil dipublikasikan!'),
-              ],
-            ),
-            backgroundColor: const Color(0xFF2E7D32),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-        Navigator.pop(context, true);
-      }
-    } else {
+  // FUNGSI 3: KIRIM POSTINGAN 
+  Future<void> _postImage() async {
+    if (_descController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Gagal posting: ${response.statusCode}'),
+          content: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.white),
+              SizedBox(width: 12),
+              Text('Deskripsi tidak boleh kosong'),
+            ],
+          ),
+          backgroundColor: Colors.orange[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _loading = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+      final desc = _descController.text.trim();
+      final category = _selectedCategory ?? 'Uncategorized'; // Default jika user tidak pilih
+
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConfig.baseUrl}/posts'), 
+      );
+
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['description'] = desc;
+      request.fields['category'] = category;
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'image',
+          widget.imageBytes,
+          filename: 'post_image.jpg',
+        ),
+      );
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      print('📦 Server response: $responseBody');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final decoded = jsonDecode(responseBody);
+        
+        // Coba berbagai kemungkinan key response gambar dari server
+        final imageUrl = decoded['post']?['image_url'] ?? 
+                         decoded['data']?['image_url'] ?? 
+                         decoded['image_url'] ?? '';
+
+        await prefs.setString('lastUploadedImageUrl', imageUrl);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('Postingan berhasil dipublikasikan!'),
+                ],
+              ),
+              backgroundColor: const Color(0xFF2E7D32),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+          Navigator.pop(context, true);
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal posting: ${response.statusCode}'),
+            backgroundColor: Colors.red[700],
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
           backgroundColor: Colors.red[700],
         ),
       );
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error: $e'),
-        backgroundColor: Colors.red[700],
-      ),
-    );
-  } finally {
-    setState(() => _loading = false);
   }
-}
-
 
   void _showFullImage() {
     showDialog(
@@ -158,7 +198,7 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
               top: 16,
               right: 16,
               child: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.black54,
                   shape: BoxShape.circle,
                 ),
@@ -355,7 +395,6 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
                           fit: BoxFit.cover,
                         ),
                       ),
-                      // Overlay gradient for zoom icon
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
@@ -370,7 +409,6 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
                           ),
                         ),
                       ),
-                      // Zoom icon indicator
                       Positioned(
                         bottom: 12,
                         right: 12,
@@ -383,11 +421,7 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.zoom_in,
-                                color: Colors.white,
-                                size: 18,
-                              ),
+                              Icon(Icons.zoom_in, color: Colors.white, size: 18),
                               SizedBox(width: 4),
                               Text(
                                 'Tap untuk perbesar',
@@ -410,7 +444,7 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
 
             const SizedBox(height: 24),
 
-            // Category Section
+            // --- CATEGORY SECTION (DINAMIS) ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -443,78 +477,107 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: _categories.map((category) {
-                      final isSelected = _selectedCategory == category['name'];
-                      return GestureDetector(
-                        onTap: () => setState(() {
-                          _selectedCategory = isSelected 
-                              ? null 
-                              : category['name'] as String;
-                        }),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFF2E7D32)
-                                : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: isSelected
-                                  ? const Color(0xFF2E7D32)
-                                  : Colors.grey[300]!,
-                              width: isSelected ? 2 : 1,
+                  
+                  // Logika Loading / Empty / List Data
+                  if (_isLoadingCategories)
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        child: const CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  else if (_categories.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[200]!),
+                      ),
+                      child: const Text(
+                        "Tidak ada kategori tersedia.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  else
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: _categories.map((catData) {
+                        // Ambil nama kategori
+                        final String categoryName = catData['category'] ?? 'Lainnya';
+                        
+                        // Tentukan style berdasarkan nama
+                        final style = _getCategoryStyle(categoryName);
+                        
+                        final isSelected = _selectedCategory == categoryName;
+
+                        return GestureDetector(
+                          onTap: () => setState(() {
+                            _selectedCategory = isSelected ? null : categoryName;
+                          }),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
                             ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: const Color(0xFF2E7D32)
-                                          .withOpacity(0.3),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                category['icon'] as String,
-                                style: const TextStyle(fontSize: 18),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? style['color']
+                                  : Colors.grey[100],
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: isSelected
+                                    ? style['color']
+                                    : Colors.grey[300]!,
+                                width: isSelected ? 2 : 1,
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                category['name'] as String,
-                                style: TextStyle(
-                                  fontFamily: 'PublicSans',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : const Color(0xFF1A1A1A),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: (style['color'] as Color).withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  style['icon'],
+                                  style: const TextStyle(fontSize: 18),
                                 ),
-                              ),
-                              if (isSelected) ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.check_circle,
-                                  color: Colors.white,
-                                  size: 16,
+                                const SizedBox(width: 8),
+                                Text(
+                                  categoryName,
+                                  style: TextStyle(
+                                    fontFamily: 'PublicSans',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : const Color(0xFF1A1A1A),
+                                  ),
                                 ),
+                                if (isSelected) ...[
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                        );
+                      }).toList(),
+                    ),
                 ],
               ),
             ),
@@ -534,9 +597,9 @@ class _UploadPostScreenState extends State<UploadPostScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline,
-                    color: const Color(0xFF2E7D32),
+                    color: Color(0xFF2E7D32),
                     size: 20,
                   ),
                   const SizedBox(width: 12),

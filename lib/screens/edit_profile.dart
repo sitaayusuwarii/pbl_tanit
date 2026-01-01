@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
+import '../config/api_config.dart';
 
 class EditProfilePage extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -74,7 +74,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://10.20.2.176:8000/api/user/update'),
+        Uri.parse('${ApiConfig.baseUrl}/user/update'),
       );
 
       request.headers['Authorization'] = 'Bearer $token';

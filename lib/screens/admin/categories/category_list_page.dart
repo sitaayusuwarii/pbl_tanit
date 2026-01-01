@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/admin_appbar.dart';
 import '../widgets/admin_sidebar.dart';
 import '../widgets/admin_card.dart';
+import '../../../services/category_service.dart';
 
 class CategoryListPage extends StatefulWidget {
   const CategoryListPage({Key? key}) : super(key: key);
@@ -11,33 +12,40 @@ class CategoryListPage extends StatefulWidget {
 }
 
 class _CategoryListPageState extends State<CategoryListPage> {
-  // Mock data - replace with API calls
-  final List<Map<String, dynamic>> categories = [
-    {
-      'id': 1,
-      'name': 'Pertanian Organik',
-      'postCount': 234,
-      'createdAt': '2024-01-15',
-    },
-    {
-      'id': 2,
-      'name': 'Teknologi Pertanian',
-      'postCount': 189,
-      'createdAt': '2024-01-20',
-    },
-    {
-      'id': 3,
-      'name': 'Peternakan',
-      'postCount': 156,
-      'createdAt': '2024-02-01',
-    },
-    {
-      'id': 4,
-      'name': 'Hidroponik',
-      'postCount': 142,
-      'createdAt': '2024-02-10',
-    },
-  ];
+  final _searchController = TextEditingController();
+  final CategoryService _categoryService = CategoryService();
+  
+  List<dynamic> _categories = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategories();
+  }
+
+  Future<void> _fetchCategories() async {
+    try {
+      final data = await _categoryService.getCategories();
+      setState(() {
+        _categories = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      // Handle error silent or snackbar
+    }
+  }
+
+  Future<void> _handleRefresh() async {
+    await _fetchCategories();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   void _deleteCategory(int id) {
     showDialog(
@@ -51,15 +59,21 @@ class _CategoryListPageState extends State<CategoryListPage> {
             child: const Text('Batal'),
           ),
           ElevatedButton(
-            onPressed: () {
-              // Handle delete - call API
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Kategori berhasil dihapus')),
-              );
+            onPressed: () async {
+              Navigator.pop(context); 
+              bool success = await _categoryService.deleteCategory(id);
+              if (success) {
+                _fetchCategories();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Kategori berhasil dihapus')),
+                  );
+                }
+              }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.red.shade600,
+              foregroundColor: Colors.white,
             ),
             child: const Text('Hapus'),
           ),
@@ -74,116 +88,132 @@ class _CategoryListPageState extends State<CategoryListPage> {
       backgroundColor: Colors.grey.shade100,
       appBar: const AdminAppBar(title: 'Manajemen Kategori'),
       drawer: const AdminSidebar(currentRoute: '/admin/categories'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Daftar Kategori',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+      
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final result = await Navigator.pushNamed(context, '/admin/categories/add');
+          if (result == true) {
+            _fetchCategories();
+          }
+        },
+        label: const Text('Tambah Kategori'),
+        icon: const Icon(Icons.add),
+        backgroundColor: Colors.green.shade600,
+        foregroundColor: Colors.white,
+        elevation: 4,
+      ),
+
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 80), 
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Daftar Kategori',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/admin/categories/add');
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah Kategori'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade600,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            
-            AdminCard(
-              padding: EdgeInsets.zero,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  headingRowColor: MaterialStateProperty.all(
-                    Colors.grey.shade50,
-                  ),
-                  columns: const [
-                    DataColumn(
-                      label: Text(
-                        'Nama Kategori',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Jumlah Post',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Tanggal Dibuat',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Aksi',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                  rows: categories.map((category) {
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                          Text(
-                            category['name'],
-                            style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 24),
+
+              if (_isLoading) 
+                const Center(child: CircularProgressIndicator())
+              else if (_categories.isEmpty)
+                 const Center(child: Text("Belum ada kategori"))
+              else
+                ..._categories.map((category) {
+                  String dateStr = category['created_at'] != null 
+                      ? category['created_at'].toString().substring(0, 10) 
+                      : '-';
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: AdminCard(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(Icons.category, 
+                                color: Colors.green.shade700),
                           ),
-                        ),
-                        DataCell(Text(category['postCount'].toString())),
-                        DataCell(Text(category['createdAt'])),
-                        DataCell(
+
+                          const SizedBox(width: 16),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  category['category'] ?? 'Tanpa Nama',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  "Dibuat: $dateStr",
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // --- TOMBOL EDIT (SUDAH DIPERBAIKI) ---
                               IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                    context,
+                                onPressed: () async {
+                                  // Navigasi ke Edit Page mengirimkan data kategori
+                                  final result = await Navigator.pushNamed(
+                                    context, 
                                     '/admin/categories/edit',
-                                    arguments: category,
+                                    arguments: category // Kirim seluruh object kategori
                                   );
+
+                                  // Jika update berhasil (result == true), refresh list
+                                  if (result == true) {
+                                    _fetchCategories();
+                                  }
                                 },
+                                icon: const Icon(Icons.edit),
+                                color: Colors.blue,
+                                tooltip: 'Edit',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(8),
                               ),
+                              const SizedBox(width: 8),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () => _deleteCategory(category['id']),
+                                icon: const Icon(Icons.delete),
+                                color: Colors.red,
+                                tooltip: 'Hapus',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(8),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+            ],
+          ),
         ),
       ),
     );

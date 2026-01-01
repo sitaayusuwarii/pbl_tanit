@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'register.dart';
 import 'home.dart';
+import '../config/api_config.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
 
     try {
-      final url = Uri.parse("http://10.20.2.176:8000/api/auth/login");
+      final url = Uri.parse("${ApiConfig.baseUrl}/auth/login");
 
       final response = await http.post(
         url,
@@ -48,50 +49,51 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final token = data["access_token"] ?? "";
-        final role  = data["role"];            
+        final role = data["role"]; // 'admin', 'super_admin', 'petani'
         final userId = data["user"]["id"];
+
+        // Debugging di Terminal untuk memastikan role yang masuk
+        print("DEBUG: Role user adalah -> $role");
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", token);
         await prefs.setString("name", _userCtrl.text.trim());
+        await prefs.setString("role", role);
 
         if (mounted) {
-  // SnackBar sesuai role
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Row(
-        children: [
-          const Icon(Icons.check_circle, color: Colors.white),
-          const SizedBox(width: 12),
-          Text(
-            role == "admin"
-                ? "Login berhasil! Selamat datang Admin"
-                : "Login berhasil! Selamat datang",
-          ),
-        ],
-      ),
-      backgroundColor: const Color(0xFF2E7D32),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-    ),
-  );
+          // SnackBar
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Text("Login berhasil! Halo, $role"),
+                ],
+              ),
+              backgroundColor: const Color(0xFF2E7D32),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
 
-  // Redirect sesuai role
-  if (role == "admin") {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const AdminDashboard()),
-    );
-  } else {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-    );
-  }
-}
-
+          // ✅ PERBAIKAN LOGIKA REDIRECT DI SINI
+          // Admin DAN Super Admin masuk ke Dashboard yang SAMA
+          if (role == "admin" || role == "super_admin") {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminDashboard()),
+            );
+          } else {
+            // Petani masuk ke Home Screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const HomeScreen()),
+            );
+          }
+        }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -268,25 +270,6 @@ class _LoginPageState extends State<LoginPage> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
                               ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey[200]!),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF2E7D32),
-                                  width: 2,
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.red[300]!),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
                             ),
                             validator: (v) => v == null || v.trim().isEmpty
                                 ? 'Nama lengkap wajib diisi'
@@ -333,25 +316,6 @@ class _LoginPageState extends State<LoginPage> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.grey[200]!),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF2E7D32),
-                                  width: 2,
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.red[300]!),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
                               ),
                             ),
                             validator: (v) {
@@ -514,9 +478,6 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                     );
                                   },
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                                  ),
                                   child: const Text(
                                     'Daftar Sekarang',
                                     style: TextStyle(
