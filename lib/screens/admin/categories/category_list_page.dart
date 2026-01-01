@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/admin_appbar.dart';
 import '../widgets/admin_sidebar.dart';
 import '../widgets/admin_card.dart';
-import '../../../services/category_service.dart'; // Import service
+import '../../../services/category_service.dart';
 
 class CategoryListPage extends StatefulWidget {
   const CategoryListPage({Key? key}) : super(key: key);
@@ -13,18 +13,17 @@ class CategoryListPage extends StatefulWidget {
 
 class _CategoryListPageState extends State<CategoryListPage> {
   final _searchController = TextEditingController();
-  final CategoryService _categoryService = CategoryService(); // Inisialisasi service
+  final CategoryService _categoryService = CategoryService();
   
-  List<dynamic> _categories = []; // List kosong untuk menampung data API
+  List<dynamic> _categories = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchCategories(); // Panggil data saat halaman dibuka
+    _fetchCategories();
   }
 
-  // Fungsi mengambil data dari API
   Future<void> _fetchCategories() async {
     try {
       final data = await _categoryService.getCategories();
@@ -34,13 +33,10 @@ class _CategoryListPageState extends State<CategoryListPage> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      // Handle error silent or snackbar
     }
   }
 
-  // Fungsi refresh saat tarik layar (opsional tapi bagus UX-nya)
   Future<void> _handleRefresh() async {
     await _fetchCategories();
   }
@@ -64,22 +60,13 @@ class _CategoryListPageState extends State<CategoryListPage> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context); // Tutup dialog dulu
-              
-              // Panggil API delete
+              Navigator.pop(context); 
               bool success = await _categoryService.deleteCategory(id);
-              
               if (success) {
-                _fetchCategories(); // Refresh list setelah hapus
+                _fetchCategories();
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Kategori berhasil dihapus')),
-                  );
-                }
-              } else {
-                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Gagal menghapus kategori')),
                   );
                 }
               }
@@ -104,7 +91,6 @@ class _CategoryListPageState extends State<CategoryListPage> {
       
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          // Tunggu hasil dari halaman Add, jika true (berhasil simpan), refresh list
           final result = await Navigator.pushNamed(context, '/admin/categories/add');
           if (result == true) {
             _fetchCategories();
@@ -117,9 +103,10 @@ class _CategoryListPageState extends State<CategoryListPage> {
         elevation: 4,
       ),
 
-      body: RefreshIndicator( // Bungkus dengan RefreshIndicator
+      body: RefreshIndicator(
         onRefresh: _handleRefresh,
         child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 80), 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,37 +119,14 @@ class _CategoryListPageState extends State<CategoryListPage> {
                   color: Colors.black87,
                 ),
               ),
-              
               const SizedBox(height: 24),
 
-              // SEARCH BAR (Logika filter search belum diterapkan di backend, ini hanya UI)
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Cari kategori...',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // LOGIKA TAMPILAN (Loading / Kosong / Ada Data)
               if (_isLoading) 
                 const Center(child: CircularProgressIndicator())
               else if (_categories.isEmpty)
                  const Center(child: Text("Belum ada kategori"))
               else
-                // LIST KATEGORI DARI API
                 ..._categories.map((category) {
-                  // Parsing tanggal (opsional, sederhana saja dulu)
                   String dateStr = category['created_at'] != null 
                       ? category['created_at'].toString().substring(0, 10) 
                       : '-';
@@ -190,7 +154,6 @@ class _CategoryListPageState extends State<CategoryListPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  // PERHATIKAN: Key dari Laravel adalah 'category', bukan 'name'
                                   category['category'] ?? 'Tanpa Nama',
                                   style: const TextStyle(
                                     fontSize: 16,
@@ -198,15 +161,6 @@ class _CategoryListPageState extends State<CategoryListPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 6),
-                                Text(
-                                  // Post count belum ada di tabel database, kita hardcode 0 dulu
-                                  "Total Postingan: 0", 
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
                                 Text(
                                   "Dibuat: $dateStr",
                                   style: TextStyle(
@@ -221,9 +175,20 @@ class _CategoryListPageState extends State<CategoryListPage> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // --- TOMBOL EDIT (SUDAH DIPERBAIKI) ---
                               IconButton(
-                                onPressed: () {
-                                  // Navigasi Edit (Belum diimplementasikan di jawaban ini)
+                                onPressed: () async {
+                                  // Navigasi ke Edit Page mengirimkan data kategori
+                                  final result = await Navigator.pushNamed(
+                                    context, 
+                                    '/admin/categories/edit',
+                                    arguments: category // Kirim seluruh object kategori
+                                  );
+
+                                  // Jika update berhasil (result == true), refresh list
+                                  if (result == true) {
+                                    _fetchCategories();
+                                  }
                                 },
                                 icon: const Icon(Icons.edit),
                                 color: Colors.blue,

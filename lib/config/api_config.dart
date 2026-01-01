@@ -2,7 +2,7 @@ class ApiConfig {
   // GANTI IP SESUAI IP LAPTOP SAAT INI
   // Pastikan HP dan Laptop konek di WiFi yang sama!
 
-  static const String _ipAddress = "";
+  static const String _ipAddress = "192.168.1.11";
   static const String _port = "8000";
   
   // Base URL otomatis gabungin IP + Port + /api

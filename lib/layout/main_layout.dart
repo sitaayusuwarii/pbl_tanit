@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+// Kita pakai Widget? generic biar tidak error import
+// import 'package:pbl_tanit/screens/admin/widgets/admin_sidebar.dart'; 
 
 class MainLayout extends StatelessWidget {
   final Widget child;
   final int selectedIndex;
   final Function(int) onItemTapped;
   final VoidCallback? onAddPressed;
+  
+  // 🔥 PERBAIKAN 1: Tambahkan variabel untuk menyimpan drawer
+  final Widget? drawer; 
 
   const MainLayout({
     super.key,
@@ -12,11 +17,15 @@ class MainLayout extends StatelessWidget {
     required this.selectedIndex,
     required this.onItemTapped,
     this.onAddPressed,
+    this.drawer, // 🔥 PERBAIKAN 2: Masukkan ke 'this.drawer'
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // 🔥 PERBAIKAN 3: Pasang drawer di sini agar Sidebar muncul
+      drawer: drawer, 
+
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -31,11 +40,7 @@ class MainLayout extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
-                Icons.agriculture,
-                color: Colors.white,
-                size: 20,
-              ),
+              child: const Icon(Icons.agriculture, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 10),
             const Text(
@@ -53,17 +58,15 @@ class MainLayout extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
+        // Pastikan icon menu drawer berwarna hitam
+        iconTheme: const IconThemeData(color: Colors.black),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
             height: 1,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Colors.grey[200]!,
-                  Colors.grey[300]!,
-                  Colors.grey[200]!,
-                ],
+                colors: [Colors.grey[200]!, Colors.grey[300]!, Colors.grey[200]!],
               ),
             ),
           ),
@@ -72,7 +75,7 @@ class MainLayout extends StatelessWidget {
       body: SafeArea(
         child: Container(
           color: Colors.grey[50],
-          child: child, // Biarkan halaman menangani scroll sendiri
+          child: child,
         ),
       ),
       floatingActionButton: selectedIndex == 0 && onAddPressed != null
@@ -99,11 +102,7 @@ class MainLayout extends StatelessWidget {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
                   onTap: onAddPressed,
-                  child: const Icon(
-                    Icons.add,
-                    color: Colors.white,
-                    size: 32,
-                  ),
+                  child: const Icon(Icons.add, color: Colors.white, size: 32),
                 ),
               ),
             )
@@ -127,36 +126,11 @@ class MainLayout extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(
-                  icon: Icons.home,
-                  activeIcon: Icons.home,
-                  label: 'Beranda',
-                  index: 0,
-                ),
-                _buildNavItem(
-                  icon: Icons.search,
-                  activeIcon: Icons.search,
-                  label: 'Cari',
-                  index: 1,
-                ),
-                _buildNavItem(
-                  icon: Icons.chat_bubble_outline,
-                  activeIcon: Icons.chat_bubble,
-                  label: 'Chatbot',
-                  index: 2,
-                ),
-                _buildNavItem(
-                  icon: Icons.groups_outlined,
-                  activeIcon: Icons.groups,
-                  label: 'Komunitas',
-                  index: 3,
-                ),
-                _buildNavItem(
-                  icon: Icons.person_outline,
-                  activeIcon: Icons.person,
-                  label: 'Profile',
-                  index: 4,
-                ),
+                _buildNavItem(icon: Icons.home, activeIcon: Icons.home, label: 'Beranda', index: 0),
+                _buildNavItem(icon: Icons.search, activeIcon: Icons.search, label: 'Cari', index: 1),
+                _buildNavItem(icon: Icons.chat_bubble_outline, activeIcon: Icons.chat_bubble, label: 'Chatbot', index: 2),
+                _buildNavItem(icon: Icons.groups_outlined, activeIcon: Icons.groups, label: 'Komunitas', index: 3),
+                _buildNavItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile', index: 4),
               ],
             ),
           ),
@@ -165,14 +139,8 @@ class MainLayout extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem({
-    required IconData icon,
-    required IconData activeIcon,
-    required String label,
-    required int index,
-  }) {
+  Widget _buildNavItem({required IconData icon, required IconData activeIcon, required String label, required int index}) {
     final isSelected = selectedIndex == index;
-
     return Flexible(
       child: GestureDetector(
         onTap: () => onItemTapped(index),
@@ -180,21 +148,13 @@ class MainLayout extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFF2E7D32).withOpacity(0.1)
-                : Colors.transparent,
+            color: isSelected ? const Color(0xFF2E7D32).withOpacity(0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                isSelected ? activeIcon : icon,
-                color: isSelected
-                    ? const Color(0xFF2E7D32)
-                    : Colors.grey[600],
-                size: 26,
-              ),
+              Icon(isSelected ? activeIcon : icon, color: isSelected ? const Color(0xFF2E7D32) : Colors.grey[600], size: 26),
               const SizedBox(height: 2),
               AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 200),
@@ -202,14 +162,9 @@ class MainLayout extends StatelessWidget {
                   fontFamily: 'PublicSans',
                   fontSize: isSelected ? 12 : 11,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected
-                      ? const Color(0xFF2E7D32)
-                      : Colors.grey[600],
+                  color: isSelected ? const Color(0xFF2E7D32) : Colors.grey[600],
                 ),
-                child: Text(
-                  label,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: Text(label, overflow: TextOverflow.ellipsis),
               ),
             ],
           ),
